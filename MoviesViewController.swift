@@ -10,17 +10,30 @@ import UIKit
 import AFNetworking
 import MBProgressHUD
 
-class MoviesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+class MoviesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate {
 
     @IBOutlet weak var tableView: UITableView!
+    @IBOutlet weak var movieSearchBar: UISearchBar!
     
     var movies: [NSDictionary]?
+    var filteredData: [NSDictionary]?
+    var endpoint: String!
+    var tabTitle: String!
+
     
     override func viewDidLoad() {
         super.viewDidLoad()
         tableView.dataSource = self
         tableView.delegate = self
-
+        movieSearchBar.delegate = self
+        self.title = "\(tabTitle)"
+        self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .Plain, target: nil, action: nil)
+        self.navigationController?.navigationBar.barTintColor = UIColor(red: 255/255, green: 204/255, blue: 0/255, alpha: 1.0)
+        self.movieSearchBar.barTintColor = UIColor(red: 255/255, green: 204/255, blue: 0/255, alpha: 1.0)
+        
+        let barColor  = UIColor(red: 255/255, green: 229/255, blue: 127/255, alpha: 1.0)
+        let textFieldInsideSearchBar = movieSearchBar.valueForKey("searchField") as? UITextField
+        textFieldInsideSearchBar?.backgroundColor = barColor
         // Do any additional setup after loading the view.
         
         // Initialize a UIRefreshControl
@@ -30,7 +43,7 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
     
         
         let apiKey = "a07e22bc18f5cb106bfe4cc1f83ad8ed"
-        let url = NSURL(string:"https://api.themoviedb.org/3/movie/now_playing?api_key=\(apiKey)")
+        let url = NSURL(string:"https://api.themoviedb.org/3/movie/\(endpoint)?api_key=\(apiKey)")
         let request = NSURLRequest(URL: url!)
         let session = NSURLSession(
             configuration: NSURLSessionConfiguration.defaultSessionConfiguration(),
@@ -94,6 +107,8 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
         
         cell.titleLabel.text = title
         cell.overviewLabel.text = overview
+        cell.selectionStyle = .None
+        cell.backgroundColor = UIColor(red: 255/255, green: 229/255, blue: 127/255, alpha: 1.0)
         
         
         print("row \(indexPath.row)")
@@ -108,7 +123,7 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
         
         // ... Create the NSURLRequest (myRequest) ...
         let apiKey = "a07e22bc18f5cb106bfe4cc1f83ad8ed"
-        let url = NSURL(string:"https://api.themoviedb.org/3/movie/now_playing?api_key=\(apiKey)")
+        let url = NSURL(string:"https://api.themoviedb.org/3/movie/\(endpoint)?api_key=\(apiKey)")
         let myRequest = NSURLRequest(URL: url!)
         
         // Configure session so that completion handler is executed on main UI thread
@@ -131,15 +146,37 @@ class MoviesViewController: UIViewController, UITableViewDataSource, UITableView
         });
         task.resume()
     }
+    
+    func searchBarTextDidBeginEditing(searchBar: UISearchBar) {
+        self.movieSearchBar.showsCancelButton = true
+    }
+    
+    func searchBarCancelButtonClicked(movieSearchBar: UISearchBar) {
+        movieSearchBar.showsCancelButton = false
+        movieSearchBar.text = ""
+        movieSearchBar.resignFirstResponder()
+    }
 
-    /*
+
+    
     // MARK: - Navigation
 
     // In a storyboard-based application, you will often want to do a little preparation before navigation
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+        
+        
+        let cell = sender as! UITableViewCell
+        let indexPath = tableView.indexPathForCell(cell)
+        let movie = movies![indexPath!.row]
+        
+        let detailViewController = segue.destinationViewController as! DetailViewController
+        detailViewController.movie = movie
+        
+        
+        
         // Get the new view controller using segue.destinationViewController.
         // Pass the selected object to the new view controller.
     }
-    */
+    
 
 }
